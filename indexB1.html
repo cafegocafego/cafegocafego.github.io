@@ -1,0 +1,766 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CaféGO - Cafetería de la Facultad de Ciencias Económicas y Empresariales</title>
+    <style>
+        /* Estilos básicos para la aplicación */
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #edf7ff;
+        }
+        header {
+            background-color: #ff6600;
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+        #clock {
+            font-size: 1.2em;
+            margin-top: 5px;
+        }
+        nav {
+            display: flex;
+            justify-content: space-around;
+            padding: 10px;
+            background-color: #800040;
+        }
+        nav a {
+            color: white;
+            padding: 10px 20px;
+            text-decoration: none;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        nav a:hover {
+            background-color: #ff6600;
+        }
+        section {
+            padding: 20px;
+            display: none;
+        }
+        .active {
+            display: block;
+        }
+        .menu-item {
+            background-color: white;
+            padding: 10px;
+            margin: 10px 0;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            display: flex;
+            align-items: center;
+        }
+        .menu-item img {
+            width: 50px;
+            height: 50px;
+            margin-right: 15px;
+            border-radius: 5px;
+        }
+        .button {
+            background-color: #ff6600;
+            color: white;
+            padding: 10px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        footer {
+            text-align: center;
+            padding: 20px;
+            background-color: #800040;
+            color: white;
+        }
+
+            /* Estilos generales para móviles */
+    @media (max-width: 768px) {
+        body {
+            font-size: 16px;
+        }
+
+        header {
+            padding: 15px;
+            text-align: center;
+        }
+
+        nav {
+            flex-direction: column;
+            padding: 5px;
+        }
+
+        nav a {
+            padding: 10px;
+            font-size: 1em;
+            text-align: center;
+            width: 100%;
+        }
+
+        /* Ajustes de secciones para adaptarse al ancho de pantalla */
+        section {
+            padding: 10px;
+        }
+
+        .menu-item {
+            flex-direction: column;
+            text-align: center;
+        }
+
+        .menu-item img {
+            width: 100px;
+            height: 100px;
+            margin: 10px auto;
+        }
+
+        .button {
+            width: 100%;
+            padding: 12px;
+            font-size: 1em;
+            margin-top: 10px;
+        }
+    }
+
+    </style>
+    <script>
+        // Código JavaScript para reloj, carrito, y menú del día
+        function updateClock() {
+            const now = new Date();
+            const date = now.toLocaleDateString();
+            const time = now.toLocaleTimeString();
+            document.getElementById("clock").textContent = `Fecha y Hora: ${date} ${time}`;
+        }
+        setInterval(updateClock, 1000);
+
+        function showSection(sectionId) {
+            const sections = document.querySelectorAll('section');
+            sections.forEach(section => section.classList.remove('active'));
+            document.getElementById(sectionId).classList.add('active');
+        }
+
+        let cart = [];
+        function addToCart(itemName, price) {
+            cart.push({ itemName, price });
+            updateCartDisplay();
+        }
+
+        function updateCartDisplay() {
+            const cartSection = document.getElementById("cesta");
+            const total = cart.reduce((sum, item) => sum + item.price, 0).toFixed(2);
+            const cartItems = cart.map(item => `<li>${item.itemName} - ${item.price.toFixed(2)}€</li>`).join("");
+            cartSection.innerHTML = `
+                <h2>Tu Cesta</h2>
+                <ul>${cartItems}</ul>
+                <p>Total: ${total}€</p>
+                <button class="button" onclick="showSection('pago')">Ir a Pagar</button>
+            `;
+        }
+
+        function getMenuForToday() {
+            const menus = {
+                "Lunes": {
+                    primero: ["Macarrones tomate y atún", "Ensalada de la casa", "Sopa de picadillo"],
+                    segundo: ["Pollo a la plancha", "Rollitos de primavera"]
+                },
+                "Martes": {
+                    primero: ["Guiso del maestro", "Ensalada de la casa", "Sopa de picadillo"],
+                    segundo: ["Carne en salsa", "Empanadillas de atún"]
+                },
+                "Miércoles": {
+                    primero: ["Tallarines al pesto verde de nueces", "Ensalada de la casa", "Sopa de picadillo"],
+                    segundo: ["Fajitas bacon y queso", "Lentejas caseras"]
+                },
+                "Jueves": {
+                    primero: ["Arroz de verduras", "Ensalada de la casa", "Sopa de picadillo"],
+                    segundo: ["Lomo a la pimienta", "Gyozas vegetales"]
+                },
+                "Viernes": {
+                    primero: ["Crema de calabacín", "Ensalada de la casa", "Sopa de picadillo"],
+                    segundo: ["Flamenquines de york y queso", "Canelones de atún"]
+                }
+            };
+            const daysOfWeek = ["Domingo", "Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado"];
+            const today = new Date();
+            const dayName = daysOfWeek[today.getDay()];
+            return menus[dayName] || { primero: ["No disponible"], segundo: ["No disponible"] };
+        }
+
+        function displayMenuForToday() {
+
+    const menu = getMenuForToday();
+    const menuSection = document.getElementById("menu-del-dia");
+
+    menuSection.innerHTML = `
+        <h2>Menú del Día</h2>
+        <div class="menu-item">
+            <h3>Primeros:</h3>
+            <ul>
+                ${menu.primero.map(plato => `<li>${plato}</li>`).join('')}
+            </ul>
+        </div>
+        <div class="menu-item">
+            <h3>Segundos:</h3>
+            <ul>
+                ${menu.segundo.map(plato => `<li>${plato}</li>`).join('')}
+            </ul>
+        </div>
+        <p>Precio: 5,50€ (Incluye pan y postre)</p>
+        <!-- Botón para encargar el Menú del Día -->
+        <button class="button" onclick="addMenuDelDiaToCart()">Encargar Menú del Día</button>
+    `;
+}
+// Nueva función para añadir el Menú del Día a la cesta
+function addMenuDelDiaToCart() {
+    const menuName = "Menú del Día";
+    const price = 5.50;
+
+    cart.push({ itemName: menuName, price: price });
+    updateCartDisplay();
+    alert("El Menú del Día ha sido añadido a tu cesta.");
+    showSection('cesta'); // Redirige a la sección de la cesta
+}
+
+
+        document.addEventListener("DOMContentLoaded", () => {
+            updateClock();
+            displayMenuForToday();
+            showSection('home');
+        });
+    </script>
+</head>
+<body>
+
+    <!-- Encabezado con el reloj -->
+    <header>
+        <h1>CaféGO</h1>
+        <p>Cafetería de la Facultad de Ciencias Económicas y Empresariales</p>
+        <p id="clock">Fecha y Hora: </p>
+        <!-- Inserta aquí la imagen del logo debajo del reloj -->
+    <img src="img/logo.png" alt="Logo de CaféGO" style="width: 250px; height: auto; margin: 15px 0;">
+    </header>
+
+    <!-- Barra de navegación -->
+    <nav>
+        <a onclick="showSection('home')">Home</a>
+        <a onclick="showSection('cesta')">Cesta</a>
+        <a onclick="showSection('carta')">Carta</a>
+        <a onclick="showSection('menu-del-dia')">Menú del Día</a>
+        <a onclick="showSection('pago')">Pago</a>
+    </nav>
+
+    <!-- Sección de Home -->
+    <section id="home" class="active">
+        <h2>Bienvenidos a CaféGO</h2>
+        <img src="img/logo.png" alt="Logo de CaféGO" style="width: 200px; height: auto; margin: 20px 0;">
+        <p>CaféGO es una aplicación diseñada para facilitar el proceso de pedido en la cafetería de la Facultad de Ciencias Económicas y Empresariales. Con nuestra app, puedes ver el menú actualizado, añadir productos a tu cesta, y gestionar tu pago de manera eficiente, todo desde la comodidad de tu dispositivo móvil. Realiza tus pedidos de manera rápida y sencilla, explora nuestra carta y disfruta del menú del día.</p>
+        <button class="button" onclick="showSection('pedido')">Encargar Pedido</button>
+    </section>
+
+    <!-- Sección de Cesta -->
+    <section id="cesta">
+        <h2>Tu Cesta</h2>
+        <p>Aquí se mostrarán los productos seleccionados para tu pedido.</p>
+        <button class="button" onclick="showSection('pago')">Ir a Pagar</button>
+    </section>
+
+<!-- Sección de Carta -->
+<section id="carta">
+    <h2>Nuestra Carta</h2>
+
+    <!-- Tostadas Normales (Desplegable) -->
+    <details>
+        <summary><strong>Tostadas Normales</strong></summary>
+        <p><i>(Combina como máximo 2 ingredientes)</i></p>
+        <p>Ingredientes disponibles: Tomate, Mantequilla, Mermelada, Aceite de Oliva Virgen, Roquefort, Sobrasada, Crema de Cacao, Paté, Miel</p>
+        <div class="menu-item">
+            <img src="img/tomate.jpg" alt="Imagen Tostada Normal" style="width: 200px; height: auto; margin: 20px 20px;">
+            <div>
+                <p>Tostada Normal (media) - 0,60€</p>
+                <p>Tostada Normal (entera) - 0,90€</p>
+                <!-- Desplegables para ingredientes de Tostada Normal -->
+                <label for="ingredientes-normal">Selecciona tus ingredientes:</label>
+                <select id="ingredientes-normal" multiple size="5" onchange="checkMaxIngredients('ingredientes-normal', 2)">
+                    <option value="Tomate">Tomate</option>
+                    <option value="Mantequilla">Mantequilla</option>
+                    <option value="Mermelada">Mermelada</option>
+                    <option value="Aceite de Oliva Virgen">Aceite de Oliva Virgen</option>
+                    <option value="Roquefort">Roquefort</option>
+                    <option value="Sobrasada">Sobrasada</option>
+                    <option value="Crema de Cacao">Crema de Cacao</option>
+                    <option value="Paté">Paté</option>
+                    <option value="Miel">Miel</option>
+                </select>
+                <button class="button" onclick="addToCart('Tostada Normal (media)', 0.60)">Añadir a la Cesta (Media)</button>
+                <button class="button" onclick="addToCart('Tostada Normal (entera)', 0.90)">Añadir a la Cesta (Entera)</button>
+            </div>
+        </div>
+    </details>
+
+    <!-- Tostadas Especiales (Desplegable) -->
+    <details>
+        <summary><strong>Tostadas Especiales</strong></summary>
+        <p><i>(Combina como máximo 3 ingredientes)</i></p>
+        <p>Ingredientes disponibles: Tomate, Mantequilla, Mermelada, Aceite de Oliva Virgen, Roquefort, Sobrasada, Crema de Cacao, Paté, Miel, Queso, Jamón Serrano, Jamón York, Pechuga de Pavo, Atún</p>
+        <div class="menu-item">
+            <img src="img/jamon.jpeg" alt="Imagen Tostada Especial" style="width: 200px; height: auto; margin: 20px 20px;">
+            <div>
+                <p>Tostada Especial (media) - 1,40€</p>
+                <p>Tostada Especial (entera) - 2,00€</p>
+                <!-- Desplegables para ingredientes de Tostada Especial -->
+                <label for="ingredientes-especial">Selecciona tus ingredientes:</label>
+                <select id="ingredientes-especial" multiple size="5" onchange="checkMaxIngredients('ingredientes-especial', 3)">
+                    <option value="Tomate">Tomate</option>
+                    <option value="Mantequilla">Mantequilla</option>
+                    <option value="Mermelada">Mermelada</option>
+                    <option value="Aceite de Oliva Virgen">Aceite de Oliva Virgen</option>
+                    <option value="Roquefort">Roquefort</option>
+                    <option value="Sobrasada">Sobrasada</option>
+                    <option value="Crema de Cacao">Crema de Cacao</option>
+                    <option value="Paté">Paté</option>
+                    <option value="Miel">Miel</option>
+                    <option value="Queso">Queso</option>
+                    <option value="Jamón Serrano">Jamón Serrano</option>
+                    <option value="Jamón York">Jamón York</option>
+                    <option value="Pechuga de Pavo">Pechuga de Pavo</option>
+                    <option value="Atún">Atún</option>
+                </select>
+                <button class="button" onclick="addToCart('Tostada Especial (media)', 1.40)">Añadir a la Cesta (Media)</button>
+                <button class="button" onclick="addToCart('Tostada Especial (entera)', 2.00)">Añadir a la Cesta (Entera)</button>
+            </div>
+        </div>
+    </details>
+
+    <!-- Sección de Bocadillos -->
+<details>
+    <summary><strong>Bocadillos</strong></summary>
+
+    <div class="menu-item">
+        <img src="img/atun.jpg" alt="Imagen Bocadillo Atún/Jamón York/Jamón Serrano/Queso" style="width: 200px; height: auto; margin: 20px 20px;">
+        <div>
+            <p>Atún/Jamón York/Jamón Serrano/Queso - 2,00€</p>
+            <button class="button" onclick="addToCart('Bocadillo Atún/Jamón York/Jamón Serrano/Queso', 2.00)">Añadir a la Cesta</button>
+        </div>
+    </div>
+    <div class="menu-item">
+        <img src="img/tortillaf.jpg" alt="Imagen Bocadillo Tortilla Francesa" style="width: 200px; height: auto; margin: 20px 20px;">
+        <div>
+            <p>Tortilla Francesa - 2,00€</p>
+            <button class="button" onclick="addToCart('Bocadillo Tortilla Francesa', 2.00)">Añadir a la Cesta</button>
+        </div>
+    </div>
+    <div class="menu-item">
+        <img src="img/tortillap.jpg" alt="Imagen Bocadillo Tortilla Francesa" style="width: 200px; height: auto; margin: 20px 20px;">
+        <div>
+            <p>Tortilla de Patatas - 2,00€</p>
+            <button class="button" onclick="addToCart('Bocadillo Tortilla de Patatas', 2.00)">Añadir a la Cesta</button>
+        </div>
+    </div>
+    <div class="menu-item">
+        <img src="img/carnesalsa.jpg" alt="Imagen Bocadillo Tortilla Francesa" style="width: 200px; height: auto; margin: 20px 20px;">
+        <div>
+            <p>Carne en Salsa - 2,50€</p>
+            <button class="button" onclick="addToCart('Bocadillo Carne en Salsa', 2.50)">Añadir a la Cesta</button>
+        </div>
+    </div>
+    <div class="menu-item">
+        <img src="img/tortillafqueso.jpg" alt="Imagen Bocadillo Tortilla Francesa" style="width: 200px; height: auto; margin: 20px 20px;">
+        <div>
+            <p>Tortilla Francesa Especial (Tomate, Queso y Orégano) - 2,50€</p>
+            <button class="button" onclick="addToCart('Bocadillo Tortilla Francesa Especial', 2.50)">Añadir a la Cesta</button>
+        </div>
+    </div>
+    <div class="menu-item">
+        <img src="img/bacon.jpg" alt="Imagen Bocadillo Tortilla Francesa" style="width: 200px; height: auto; margin: 20px 20px;">
+        <div>
+            <p>Bacon, Queso, Tomate y Lechuga - 2,50€</p>
+            <button class="button" onclick="addToCart('Bocadillo Bacon', 2.50)">Añadir a la Cesta</button>
+        </div>
+    </div>
+    <div class="menu-item">
+        <img src="img/lomoqueso.jpg" alt="Imagen Bocadillo Tortilla Francesa" style="width: 200px; height: auto; margin: 20px 20px;">
+        <div>
+            <p>Lomo, Queso, Tomate y Lechuga - 2,50€</p>
+            <button class="button" onclick="addToCart('Bocadillo Lomo', 2.50)">Añadir a la Cesta</button>
+        </div>
+    </div>
+    <div class="menu-item">
+        <img src="img/pechuga.jpg" alt="Imagen Bocadillo Tortilla Francesa" style="width: 200px; height: auto; margin: 20px 20px;">
+        <div>
+            <p>Pechuga de Pollo, Queso, Tomate y Lechuga - 3,00€</p>
+            <button class="button" onclick="addToCart('Bocadillo Pechuga de Pollo', 3.00)">Añadir a la Cesta</button>
+        </div>
+    </div>
+    <div class="menu-item">
+        <img src="img/kebab.jpg" alt="Imagen Bocadillo Tortilla Francesa" style="width: 200px; height: auto; margin: 20px 20px;">
+        <div>
+            <p>Kebab de Pollo con Salsa de Yogur - 3,00€</p>
+            <button class="button" onclick="addToCart('Bocadillo Kebab de Pollo', 3.00)">Añadir a la Cesta</button>
+        </div>
+    </div>
+    <div class="menu-item">
+        <img src="img/calamares.jpg" alt="Imagen Bocadillo Tortilla Francesa" style="width: 200px; height: auto; margin: 20px 20px;">
+        <div>
+            <p>Calamares a la Romana - 3,00€</p>
+            <button class="button" onclick="addToCart('Bocadillo Calamares a la Romana', 3.00)">Añadir a la Cesta</button>
+        </div>
+    </div>
+    <div class="menu-item">
+        <img src="img/serranito.jpg" alt="Imagen Bocadillo Tortilla Francesa" style="width: 200px; height: auto; margin: 20px 20px;">
+        <div>
+            <p>Serranito (Lomo, Jamón Serrano y Pimientos) - 3,00€</p>
+            <button class="button" onclick="addToCart('Bocadillo Serranito', 3.00)">Añadir a la Cesta</button>
+        </div>
+    </div>
+    <div class="menu-item">
+        <img src="img/sanf.jpg" alt="Imagen Bocadillo Tortilla Francesa" style="width: 200px; height: auto; margin: 20px 20px;">
+        <div>
+            <p>San Francisco (Lomo, Bacon, Queso, Tomate, Lechuga y Huevo) - 3,50€</p>
+            <button class="button" onclick="addToCart('Bocadillo San Francisco', 3.50)">Añadir a la Cesta</button>
+        </div>
+    </div>
+    <div class="menu-item">
+        <img src="img/miami.jpg" alt="Imagen Bocadillo Tortilla Francesa" style="width: 200px; height: auto; margin: 20px 20px;">
+        <div>
+            <p>Miami (Pollo, Bacon, Queso, Tomate, Lechuga y Huevo) - 3,50€</p>
+            <button class="button" onclick="addToCart('Bocadillo Miami', 3.50)">Añadir a la Cesta</button>
+        </div>
+    </div>
+    <div class="menu-item">
+        <img src="img/quentuqui.png" alt="Imagen Bocadillo Tortilla Francesa" style="width: 200px; height: auto; margin: 20px 20px;">
+        <div>
+            <p>Kentucky (Pollo Empanado, Salsa Royal, Tomate y Lechuga) - 3,50€</p>
+            <button class="button" onclick="addToCart('Bocadillo Kentucky', 3.50)">Añadir a la Cesta</button>
+        </div>
+    </div>
+</details>
+
+    <!-- Sección de Pizzellas -->
+<details>
+    <summary><strong>Pizzellas</strong></summary>
+
+    <div class="menu-item">
+        <img src="img/margarita.jpg" alt="Imagen Bocadillo Tortilla Francesa" style="width: 200px; height: auto; margin: 20px 20px;">
+        <div>
+            <p>Margarita - 3,00€</p>
+            <button class="button" onclick="addToCart('Pizza Margarita', 3.00)">Añadir a la Cesta</button>
+        </div>
+    </div>
+    <div class="menu-item">
+        <img src="img/jamony.jpg" alt="Imagen Bocadillo Tortilla Francesa" style="width: 200px; height: auto; margin: 20px 20px;">
+        <div>
+            <p>Jamón York - 3,00€</p>
+            <button class="button" onclick="addToCart('Pizza Jamón York', 3.00)">Añadir a la Cesta</button>
+        </div>
+    </div>
+    <div class="menu-item">
+        <img src="img/peperoni.jpg" alt="Imagen Bocadillo Tortilla Francesa" style="width: 200px; height: auto; margin: 20px 20px;">
+        <div>
+            <p>Pepperoni - 3,50€</p>
+            <button class="button" onclick="addToCart('Pizza Pepperoni', 3.50)">Añadir a la Cesta</button>
+        </div>
+    </div>
+    <div class="menu-item">
+        <img src="img/quesos.jpg" alt="Imagen Bocadillo Tortilla Francesa" style="width: 200px; height: auto; margin: 20px 20px;">
+        <div>
+            <p>Quesos - 3,50€</p>
+            <button class="button" onclick="addToCart('Pizza Quesos', 3.50)">Añadir a la Cesta</button>
+        </div>
+    </div>
+</details>
+
+<!-- Sección de Raciones -->
+<details>
+    <summary><strong>Raciones</strong></summary>
+
+    <div class="menu-item">
+        <img src="img/rpf.jpg" alt="Imagen Bocadillo Tortilla Francesa" style="width: 200px; height: auto; margin: 20px 20px;">
+        <div>
+            <p>Patatas Fritas - 2,00€</p>
+            <button class="button" onclick="addToCart('Patatas Fritas', 2.00)">Añadir a la Cesta</button>
+        </div>
+    </div>
+    <div class="menu-item">
+        <img src="img/rpfd.jpg" alt="Imagen Bocadillo Tortilla Francesa" style="width: 200px; height: auto; margin: 20px 20px;">
+        <div>
+            <p>Patatas Deluxe con Salsa Deluxe - 2,50€</p>
+            <button class="button" onclick="addToCart('Patatas Deluxe con Salsa Deluxe', 2.50)">Añadir a la Cesta</button>
+        </div>
+    </div>
+    <div class="menu-item">
+        <img src="img/rpfh.jpg" alt="Imagen Bocadillo Tortilla Francesa" style="width: 200px; height: auto; margin: 20px 20px;">
+        <div>
+            <p>2 Huevos con Patatas Fritas - 4,00€</p>
+            <button class="button" onclick="addToCart('2 Huevos con Patatas Fritas', 4.00)">Añadir a la Cesta</button>
+        </div>
+    </div>
+    <div class="menu-item">
+        <img src="img/lasaña.jpg" alt="Imagen Bocadillo Tortilla Francesa" style="width: 200px; height: auto; margin: 20px 20px;">
+        <div>
+            <p>Lasaña Boloñesa - 5,00€</p>
+            <button class="button" onclick="addToCart('Lasaña Boloñesa', 5.00)">Añadir a la Cesta</button>
+        </div>
+    </div>
+    <div class="menu-item">
+        <img src="img/jamons.jpg" alt="Imagen Bocadillo Tortilla Francesa" style="width: 200px; height: auto; margin: 20px 20px;">
+        <div>
+            <p>Jamón Serrano - 5,00€</p>
+            <button class="button" onclick="addToCart('Jamón Serrano', 5.00)">Añadir a la Cesta</button>
+        </div>
+    </div>
+    <div class="menu-item">
+        <img src="img/quesoc.jpg" alt="Imagen Bocadillo Tortilla Francesa" style="width: 200px; height: auto; margin: 20px 20px;">
+        <div>
+            <p>Queso Curado - 5,00€</p>
+            <button class="button" onclick="addToCart('Queso Curado', 5.00)">Añadir a la Cesta</button>
+        </div>
+    </div>
+</details>
+
+<!-- Sección de Combos XXL -->
+<details>
+    <summary><strong>Combos XXL</strong></summary>
+    <p><i>El acompañamiento del Combo XXL será a elegir, sin cargo, entre Patatas Fritas, Patatas Deluxe o Ensalada Mixta.</i></p>
+
+    <div class="menu-item">
+        <img src="img/tp.jpg" alt="Imagen Bocadillo Tortilla Francesa" style="width: 200px; height: auto; margin: 20px 20px;">
+        <div>
+            <p>Tortilla de Patatas - 4,00€</p>
+            <button class="button" onclick="addToCart('Tortilla de Patatas', 4.00)">Añadir a la Cesta</button>
+        </div>
+    </div>
+    <div class="menu-item">
+        <img src="img/carnes.jpg" alt="Imagen Bocadillo Tortilla Francesa" style="width: 200px; height: auto; margin: 20px 20px;">
+        <div>
+            <p>Carne en Salsa - 4,00€</p>
+            <button class="button" onclick="addToCart('Carne en Salsa', 4.00)">Añadir a la Cesta</button>
+        </div>
+    </div>
+    <div class="menu-item">
+        <img src="img/albondigas.jpg" alt="Imagen Bocadillo Tortilla Francesa" style="width: 200px; height: auto; margin: 20px 20px;">
+        <div>
+            <p>Albóndigas en Salsa - 4,00€</p>
+            <button class="button" onclick="addToCart('Albóndigas en Salsa', 4.00)">Añadir a la Cesta</button>
+        </div>
+    </div>
+    <div class="menu-item">
+        <img src="img/lomoa.jpg" alt="Imagen Bocadillo Tortilla Francesa" style="width: 200px; height: auto; margin: 20px 20px;">
+        <div>
+            <p>Lomo con Ajos - 4,00€</p>
+            <button class="button" onclick="addToCart('Lomo con Ajos', 4.00)">Añadir a la Cesta</button>
+        </div>
+    </div>
+    <div class="menu-item">
+        <img src="img/lomoc.jpg" alt="Imagen Bocadillo Tortilla Francesa" style="width: 200px; height: auto; margin: 20px 20px;">
+        <div>
+            <p>Lomo de Cerdo Plancha - 4,00€</p>
+            <button class="button" onclick="addToCart('Lomo de Cerdo Plancha', 4.00)">Añadir a la Cesta</button>
+        </div>
+    </div>
+    <div class="menu-item">
+        <img src="img/pechugap.jpg" alt="Imagen Bocadillo Tortilla Francesa" style="width: 200px; height: auto; margin: 20px 20px;">
+        <div>
+            <p>Pechuga de Pollo Plancha - 4,00€</p>
+            <button class="button" onclick="addToCart('Pechuga de Pollo Plancha', 4.00)">Añadir a la Cesta</button>
+        </div>
+    </div>
+    <div class="menu-item">
+        <img src="img/polloe.jpg" alt="Imagen Bocadillo Tortilla Francesa" style="width: 200px; height: auto; margin: 20px 20px;">
+        <div>
+            <p>Pollo Empanado - 4,00€</p>
+            <button class="button" onclick="addToCart('Pollo Empanado', 4.00)">Añadir a la Cesta</button>
+        </div>
+    </div>
+    <div class="menu-item">
+        <img src="img/kebabp.jpeg" alt="Imagen Bocadillo Tortilla Francesa" style="width: 200px; height: auto; margin: 20px 20px;">
+        <div>
+            <p>Kebab de Pollo con Salsa de Yogur - 4,00€</p>
+            <button class="button" onclick="addToCart('Kebab de Pollo con Salsa de Yogur', 4.00)">Añadir a la Cesta</button>
+        </div>
+    </div>
+    <div class="menu-item">
+        <img src="img/finger.jpg" alt="Imagen Bocadillo Tortilla Francesa" style="width: 200px; height: auto; margin: 20px 20px;">
+        <div>
+            <p>Finger de Pollo - 4,00€</p>
+            <button class="button" onclick="addToCart('Finger de Pollo', 4.00)">Añadir a la Cesta</button>
+        </div>
+    </div>
+    <div class="menu-item">
+        <img src="img/croquetas.jpg" alt="Imagen Bocadillo Tortilla Francesa" style="width: 200px; height: auto; margin: 20px 20px;">
+        <div>
+            <p>Croquetas de Pollo - 4,00€</p>
+            <button class="button" onclick="addToCart('Croquetas de Pollo', 4.00)">Añadir a la Cesta</button>
+        </div>
+    </div>
+    <div class="menu-item">
+        <img src="img/croquetasv.jpg" alt="Imagen Bocadillo Tortilla Francesa" style="width: 200px; height: auto; margin: 20px 20px;">
+        <div>
+            <p>Croquetas Vegetarianas - 4,00€</p>
+            <button class="button" onclick="addToCart('Croquetas Vegetarianas', 4.00)">Añadir a la Cesta</button>
+        </div>
+    </div>
+    <div class="menu-item">
+        <img src="img/falafel.png" alt="Imagen Bocadillo Tortilla Francesa" style="width: 200px; height: auto; margin: 20px 20px;">
+        <div>
+            <p>Falafel Vegetariano - 4,00€</p>
+            <button class="button" onclick="addToCart('Falafel Vegetariano', 4.00)">Añadir a la Cesta</button>
+        </div>
+    </div>
+    <div class="menu-item">
+        <img src="img/cazón.jpg" alt="Imagen Bocadillo Tortilla Francesa" style="width: 200px; height: auto; margin: 20px 20px;">
+        <div>
+            <p>Cazón en Adobo - 5,00€</p>
+            <button class="button" onclick="addToCart('Cazón en Adobo', 5.00)">Añadir a la Cesta</button>
+        </div>
+    </div>
+    <div class="menu-item">
+        <img src="img/calamaresr.jpeg" alt="Imagen Bocadillo Tortilla Francesa" style="width: 200px; height: auto; margin: 20px 20px;">
+        <div>
+            <p>Calamares a la Romana - 5,00€</p>
+            <button class="button" onclick="addToCart('Calamares a la Romana', 5.00)">Añadir a la Cesta</button>
+        </div>
+    </div>
+</details>
+
+<!-- Sección de Hamburguesas -->
+<details>
+    <summary><strong>Hamburguesas</strong></summary>
+
+    <div class="menu-item">
+        <img src="img/v.jpg" alt="Imagen Bocadillo Tortilla Francesa" style="width: 200px; height: auto; margin: 20px 20px;">
+        <div>
+            <p>Hamburguesa Vegetal (Lechuga, Tomate) - 3,00€</p>
+            <button class="button" onclick="addToCart('Hamburguesa Vegetal', 3.00)">Añadir a la Cesta</button>
+        </div>
+    </div>
+    <div class="menu-item">
+        <img src="img/c.jpg" alt="Imagen Bocadillo Tortilla Francesa" style="width: 200px; height: auto; margin: 20px 20px;">
+        <div>
+            <p>Hamburguesa Completa (Pollo o Mixta, Queso, Tomate, Lechuga, Huevo) - 3,50€</p>
+            <button class="button" onclick="addToCart('Hamburguesa Completa', 3.50)">Añadir a la Cesta</button>
+        </div>
+    </div>
+    <div class="menu-item">
+        <img src="img/e.jpg" alt="Imagen Bocadillo Tortilla Francesa" style="width: 200px; height: auto; margin: 20px 20px;">
+        <div>
+            <p>Hamburguesa Especial (Pollo o Mixta, Bacon, Cebolla, Queso, Tomate, Lechuga, Huevo, Salsa Especial) - 3,50€</p>
+            <button class="button" onclick="addToCart('Hamburguesa Especial', 3.50)">Añadir a la Cesta</button>
+        </div>
+    </div>
+    <div class="menu-item">
+        <img src="img/cr.jpg" alt="Imagen Bocadillo Tortilla Francesa" style="width: 200px; height: auto; margin: 20px 20px;">
+        <div>
+            <p>Hamburguesa Crispy (Pollo Empanado, Cebolla, Queso, Tomate, Lechuga, Huevo, Salsa Especial) - 3,50€</p>
+            <button class="button" onclick="addToCart('Hamburguesa Crispy', 3.50)">Añadir a la Cesta</button>
+        </div>
+    </div>
+    <div class="menu-item">
+        <img src="img/t.jpeg" alt="Imagen Bocadillo Tortilla Francesa" style="width: 200px; height: auto; margin: 20px 20px;">
+        <div>
+            <p>Hamburguesa Ternera 200gr (Queso, Tomate, Lechuga, Cebolla Caramelizada, Salsa Especial) con Patatas Deluxe o Fritas - 4,50€</p>
+            <button class="button" onclick="addToCart('Hamburguesa Ternera 200gr', 4.50)">Añadir a la Cesta</button>
+        </div>
+    </div>
+</details>
+
+<!-- Sección de Bebidas -->
+<details>
+    <summary><strong>Bebidas</strong></summary>
+
+    <div class="menu-item">
+        <img src="img/ref.jpg" alt="Imagen Bocadillo Tortilla Francesa" style="width: 200px; height: auto; margin: 20px 20px;">
+        <div>
+            <p>Refrescos - 1,5€</p>
+            <button class="button" onclick="addToCart('Hamburguesa Vegetal', 3.00)">Añadir a la Cesta</button>
+        </div>
+    </div>
+    <div class="menu-item">
+        <img src="img/cer.jpg" alt="Imagen Bocadillo Tortilla Francesa" style="width: 200px; height: auto; margin: 20px 20px;">
+        <div>
+            <p>Cerveza Alhambra 1960 - 2,20€</p>
+            <button class="button" onclick="addToCart('Hamburguesa Completa', 3.50)">Añadir a la Cesta</button>
+        </div>
+    </div>
+    <div class="menu-item">
+        <img src="img/cer1.jpg" alt="Imagen Bocadillo Tortilla Francesa" style="width: 200px; height: auto; margin: 20px 20px;">
+        <div>
+            <p>Cerveza Alhambra - 2,00€</p>
+            <button class="button" onclick="addToCart('Hamburguesa Especial', 3.50)">Añadir a la Cesta</button>
+        </div>
+    </div>
+    <div class="menu-item">
+        <img src="img/red.jpg" alt="Imagen Bocadillo Tortilla Francesa" style="width: 200px; height: auto; margin: 20px 20px;">
+        <div>
+            <p>Red Bull - 2,00€</p>
+            <button class="button" onclick="addToCart('Hamburguesa Crispy', 3.50)">Añadir a la Cesta</button>
+        </div>
+    </div>
+    <div class="menu-item">
+        <img src="img/cafet.jpg" alt="Imagen Bocadillo Tortilla Francesa" style="width: 200px; height: auto; margin: 20px 20px;">
+        <div>
+            <p>Cafés, infusiones y Colacao - 1,20€</p>
+            <button class="button" onclick="addToCart('Hamburguesa Ternera 200gr', 4.50)">Añadir a la Cesta</button>
+        </div>
+    </div>
+    <div class="menu-item">
+        <img src="img/pul.jpg" alt="Imagen Bocadillo Tortilla Francesa" style="width: 200px; height: auto; margin: 20px 20px;">
+        <div>
+            <p>Zumos y batidos Puleva - 1,50€</p>
+            <button class="button" onclick="addToCart('Hamburguesa Ternera 200gr', 4.50)">Añadir a la Cesta</button>
+        </div>
+    </div>
+</details>
+
+    <script>
+        // Función para limitar el número de ingredientes seleccionados
+        function checkMaxIngredients(selectId, max) {
+            const select = document.getElementById(selectId);
+            const selectedOptions = Array.from(select.selectedOptions);
+            if (selectedOptions.length > max) {
+                selectedOptions[max].selected = false; // Deselecciona el último seleccionado si supera el máximo
+                alert(`Puedes seleccionar un máximo de ${max} ingredientes.`);
+            }
+        }
+    </script>
+</section>
+
+    <!-- Sección de Menú del Día -->
+    <section id="menu-del-dia">
+        <!-- El menú se cargará dinámicamente aquí -->
+    </section>
+
+    <!-- Sección para Pago -->
+    <section id="pago">
+        <h2>Selecciona tu Método de Pago</h2>
+        <form>
+            <label>
+                <input type="radio" name="metodoPago" value="Efectivo" required> Efectivo
+            </label><br>
+            <label>
+                <input type="radio" name="metodoPago" value="Tarjeta" required> Tarjeta
+            </label><br>
+            <button type="submit" class="button">Confirmar Pago</button>
+        </form>
+    </section>
+
+    <!-- Sección para Encargar Pedido -->
+    <section id="pedido">
+        <h2>Encargar tu Pedido</h2>
+        <form>
+            <label for="nombre">Nombre:</label><br>
+            <input type="text" id="nombre" name="nombre"><br>
+            <label for="telefono">Teléfono:</label><br>
+            <input type="text" id="telefono" name="telefono"><br>
+            <label for="pedido">Detalles del Pedido:</label><br>
+            <textarea id="pedidoDetalles" name="pedido" rows="4"></textarea><br>
+            <button type="submit" class="button">Enviar Pedido</button>
+        </form>
+    </section>
+
+    <!-- Pie de página -->
+    <footer>
+        <p>&copy; 2024 CaféGO - Cafetería Facultad de Ciencias Económicas y Empresariales</p>
+    </footer>
+
+</body>
+</html>
